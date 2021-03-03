@@ -69,3 +69,4 @@ function findShort(s) {
 }
 
 findShort("bitcoin take over the world maybe who knows perhaps")
+console.log('testing git and github')
