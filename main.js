@@ -48,7 +48,7 @@ document.body.append(div)
 
 
 //* Для удаления узла используется node.remove()
-setTimeout(() => div.remove(), 2000)
+// setTimeout(() => div.remove(), 2000)
 
 
 //* Для клонирования сообщения используется cloneNode()
@@ -57,3 +57,110 @@ console.log(main.cloneNode(true))
 
 // elem.cloneNode(false) - возвращает неглубокую копию elem, без дочерних элементов
 console.log(main.cloneNode(false))
+
+
+//TODO Устаревший метод добавления document.write выводится при загрузке
+// если вызвать с задержкой, то заменит исходный текст
+
+
+// Задача. Автоматический список
+function autoList() {
+  let ul = document.createElement('ul')
+  document.body.append(ul)
+  return function newLi() {
+    let text = prompt("Какой новый элемент списка?")
+    if (text) {
+      let li = document.createElement('li')
+      li.textContent = text
+      ul.append(li)
+      newLi()
+    }
+  }
+}
+let createList = autoList()
+// createList()
+
+// Задача. Построение списка
+let newDiv = document.createElement('div')
+newDiv.id = 'container'
+document.body.append(newDiv)
+let container = document.getElementById('container')
+
+let data = {
+  "Рыбы": {
+    "форель": {},
+    "лосось": {}
+  },
+
+  "Деревья": {
+    "Огромные": {
+      "секвойя": {},
+      "дуб": {}
+    },
+    "Цветковые": {
+      "яблоня": {},
+      "магнолия": {}
+    }
+  }
+};
+
+function createTree(container, branch) {
+  for (childBranch in branch) {
+    let li = document.createElement('li')
+    li.innerHTML = childBranch
+    container.append(li)
+
+    if (Object.keys(branch[childBranch]).length) {
+      let ul = document.createElement('ul')
+      createTree(ul, branch[childBranch])
+      li.append(ul)
+    }
+  }
+}
+createTree(container, data)
+
+
+// Задача. Создание календаря
+function createCalendar(elem, year, month) {
+  const table = document.createElement('table')
+  document.body.append(table)
+  const tbody = document.createElement('tbody')
+  table.append(tbody)
+
+  function createTr() {
+    const tr = document.createElement('tr')
+    tbody.append(tr)
+    for (let i = 0; i < 7; i++) {
+      const th = document.createElement('th')
+      tr.append(th)
+    }
+  }
+  createTr()
+
+  const weekName = ['пн', 'вт', 'ср', 'чт', 'пт', 'сб', 'вс']
+  const weekNameHTML = document.querySelectorAll('th')
+  for (let i = 0; i < 7; i++) {
+    weekNameHTML[i].innerHTML = weekName[i]
+  }
+
+  const firstDay = new Date(year, month - 1, 1)
+  const endDay = new Date(year, month, 0)
+  const qualityDay = endDay.getDate()
+
+  createTr()
+  
+  let currentDay = tbody.lastChild.childNodes[firstDay.getDay() - 1] || tbody.lastChild.lastChild
+  
+  for (let i = 1; i <= qualityDay; i++) {
+    currentDay.innerHTML = i
+    if (currentDay.nextSibling) {
+      currentDay = currentDay.nextSibling
+    } else {
+      i !== qualityDay ? createTr() : false
+      currentDay = tbody.lastChild.childNodes[0]
+    }
+  }
+  
+}
+
+createCalendar(calendar, 2020, 11);
