@@ -14,8 +14,7 @@ let scrollHeight = Math.max(
 
 //* Получение текущей прокрутки
 // из-за несовместимости с webkit не получится использовать document.documentElement.scrollTop/Left
-// текущее значение можно получить через
-document.body.scrollLeft/Top
+// текущее значение можно получить через document.body.scrollLeft/Top
 console.log(window.pageXOffset)
 console.log(window.pageYOffset)
 

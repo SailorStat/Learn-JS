@@ -1,0 +1,52 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <meta charset="utf-8">
+</head>
+<body>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+    }
+    .checker {
+      padding: 5px;
+      background: rgb(115, 255, 200);
+      width: 40%;
+      border: 2px solid rgb(50, 200, 150)
+    }
+    .menu {
+      display: none;
+      margin: 0;
+      width: 40%;
+      padding: 10px 25px;
+      background: rgb(115, 255, 200);
+      border: 2px solid rgb(50, 200, 150)
+    }
+    .checker.check+.menu {
+      display: block;
+    }
+
+  </style>
+  <div class="checker">▶ Сладости (нажми меня)!</div>
+  <ul class="menu">
+    <li>Пирожное</li>
+    <li>Пончик</li>
+    <li>Мёд</li>
+  </ul>
+
+  <script>
+    function classTog() {
+      checker.classList.toggle('check')
+      if (checker.classList.contains('check')) {
+        checker.innerHTML = '▼' + checker.innerHTML.slice(2)
+      } else {
+        checker.innerHTML = '▶ ' + checker.innerHTML.slice(1)
+      }
+    }
+    const checker = document.querySelector('.checker')
+    checker.addEventListener('click', classTog)
+  </script>
+
+</body>
+</html>
