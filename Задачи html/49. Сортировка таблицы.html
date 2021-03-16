@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <style>
+    table {
+       border-collapse: collapse;
+     }
+     th, td {
+       border: 1px solid black;
+       padding: 4px;
+     }
+     th {
+       cursor: pointer;
+     }
+     th:hover {
+       background: yellow;
+     }
+  </style>
+</head>
+
+<body>
+
+  <table id="grid">
+    <thead>
+      <tr>
+        <th data-type="number">Возраст</th>
+        <th data-type="string">Имя</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>5</td>
+        <td>Вася</td>
+      </tr>
+      <tr>
+        <td>2</td>
+        <td>Петя</td>
+      </tr>
+      <tr>
+        <td>12</td>
+        <td>Женя</td>
+      </tr>
+      <tr>
+        <td>9</td>
+        <td>Маша</td>
+      </tr>
+      <tr>
+        <td>1</td>
+        <td>Илья</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <script>
+    document.addEventListener('click', function(event) {
+      if (!event.target.dataset.type) return
+      const target = event.target
+      const table = event.target.closest('table')
+      const ansortiedArr = [...table.rows].slice(1)
+      let sortiedArr
+      if (target.dataset.type === "number") {
+        sortiedArr = ansortiedArr.sort((a, b) => a.cells[target.cellIndex].innerHTML - b.cells[target.cellIndex].innerHTML)
+      } else {
+        sortiedArr = ansortiedArr.sort((a, b) => a.cells[target.cellIndex].innerHTML > b.cells[target.cellIndex].innerHTML ? 1 : -1)
+      }
+      table.tBodies[0].append(...sortiedArr)
+    })
+  </script>
+
+</body>
+</html>

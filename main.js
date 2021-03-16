@@ -39,7 +39,12 @@ const newmenu = new Menu(menu)
 // Элементу присваивается атрибут, означающий поведение
 // На документ ставится обработчик, который в атрибут записывает действия
 document.addEventListener('click', function (event) {
-  if (event.target.closest('[data-nux]') != undefined) {
-    event.target.closest('[data-nux]').dataset.nux = 'false'
+  if (event.target.closest('[data-fix]')) {
+    event.target.closest('[data-fix]').innerHTML += ' click'
   }
 })
+
+
+// Задача. 49. Делегирование закрытия.html
+
+// Задача. 49. Сворачивающийся список.html
