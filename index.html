@@ -34,12 +34,14 @@
     </pre>
     <button id="hider">Hide()</button>
 
-    <input onkeydown="return checkPhoneKey(event.key)" placeholder="Введите телефон" type="tel">
-    <script>
+    <input id="input" placeholder="Введите телефон" type="tel">
+    <input id="input2" placeholder="Введите телефон" type="tel">
+
+    <!-- <script>
         function checkPhoneKey(key) {
             return (key >= '0' && key <= '9') || key == '+' || key == '(' || key == ')' || key == '-';
         }
-    </script>
+    </script> -->
     <script src="main.js"></script>
 </body>
 </html>
