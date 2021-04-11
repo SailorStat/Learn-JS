@@ -83,3 +83,4 @@ url.searchParams.set('q', 'добавим тестовый пример')
 // 'arraybuffer' - ArrayBuffer
 // 'blob' - Blob
 // 'document' - XML-документ (можем использовать XPath и другие XML-методы)
+// 'json' - JSON (парсится автоматически)
