@@ -140,7 +140,7 @@
 // Каждому значению в хранилище должен соответствовать уникальный ключ
 // Ключ должен быть один из типов: number, date, string, binary или array
 
-// Создание хранилища объектов
+//* Создание хранилища объектов
 // db.createObjectStore(name [, keyOptions])
 //    name - название хранилища
 //    keyOptions - объект со свойствами
@@ -309,3 +309,188 @@
 
 //todo Хранилище объектов всегда отсортировано, 
 //todo    по-этому всегда возврвщаются значения отсортированные по ключам
+
+
+//* Поиск по индексированному полю
+// Для поиска по другим полям объекта нам нужно создать дополнительную структуру данных (index)
+// Индекс является расширением к хранилищу, которое отследивает данное поле объекта
+// Для каждого значения этого поля хранится список ключей для объектов, которые имеют это значение
+// objectStore.createIndex(name, keyPath [, option])
+//    name - название индекса
+//    keyPath - путь к полю объекта, которое индекс отследивать (мы собираемся сделать поиск по этому полю)
+//    option - необязательный объект со свойствами
+//        unique - если true, тогда в хранилище может быть только один объект с заданным значением keyPath
+//            Если мы попытаемся сделать дубликат, то индекс сгенерирует ошибку
+//        multiEntry - используется только, если keyPath является массивом
+//            Но если мы укажем true в multiEntry, тогда индекс будет хранить список объектов хранилища
+//            для каждого значения в этом массиве
+//            Таким образом элементы массива становятся ключами индекса
+// В нашем примере мы храним книги с ключом id
+// Допустим, мы хотим сделать поиск по полю price
+{
+  openRequest.onupgradeneeded = () => {
+    const books = db.createObjectStore('books', {keyPath: 'id'})
+    const index = inventory.createIndex('price_idx', 'price')
+  }
+}
+//    - Индекс будет отслеживать поле прайс
+//    - Поле price не уникальное, у нас может быть несколько книг с одинаковой ценой,
+//        поэтому мы не устанавливаем опцию unique
+//    - Поля price не являются массивом, поэтому мы не устанавливаем флаг multiEntry
+
+// Теперь, когда мы зотим найти объект по цене, мы просто применяем теже методы поиска к индексу
+{
+  const transaction = db.transaction('books') // readonly
+  const books = transaction.objectStore('books')
+  const priceIndex = books.index('prise_idx')
+
+  const request = priceIndex.getAll(10)
+  
+  request.onsuccess = () => {
+    if (request.result != undefined) {
+      console.log('Книги', request.result)
+    } else {
+      console.log('Нет таких книг')
+    }
+  }
+}
+
+// Также мы можем использовать IDBKeyRange, чтобы создать диапазон и найти дешёвые/дорогие книги
+{
+  // Найдём книги с ценой < 5
+  const request = priceIndex.getAll(IDBKeyRange.upperBound(5))
+}
+// Индексы внутренне отсортированы по полю поддерживаемого объекта, в нашем случае по price
+// Поэтому результат будет уже отсортирован по полю price
+
+
+//* Удаление из хранилища
+{ priceIndex.delete('js') // - удалит книгу с id = js
+}
+// Если нам нужно удалить книги, основываясь на другом параметре,
+//    мы сначала для него должны найти ключ в индексе
+{
+  const request = priceIndex.getKey(5)
+
+  request.onsuccess = () => {
+    const id = request.result
+    const deleteRequest = books.delete(id)
+  }
+}
+books.clear() // удалить всё
+
+
+//* Курсоры
+// Такие методы как getAll/getAllKeys возвращают массив ключей/значений
+// Но хранилище объектов может быть огромным, больше, чем доступно памяти
+// Тогда метод getAll выдаст ошибку
+//* Объект cursor идёт по хранилищу объектов с заданным запросом (query) и возвращает пары ключ/значение
+//*   по очереди, а не все вместе
+// const request = store.openCursor(query [, direction])
+//    query - ключ или диапазон ключей, как getAll
+//    direction - необязательный аргумент, доступные занчения в виде строки:
+//        next - по умолчанию проходит от самого маленького ключа к большому
+//        prev - обратный порядок, от большого к меньшему
+//        nextunique, prevunique - тоже самое,
+//            только не возвращает последующие записи с той же парой ключ/значение (как new Set)
+
+//* Основное отличие: onsuccess генерируется многократно, один раз для каждого результата
+{
+  const transaction = db.transaction('books')
+  const books = transaction.objectStore('books')
+
+  const request = books.openCursor()
+
+  request.onsuccess = () => {
+    const cursor = request.result
+    if (cursor) {
+      const key = cursor.key // ключ книги, который вернул cursor (поле id)
+      const value = cursor.value // объект книги, который вернул курсор
+      cursor.continue()
+    } else {
+      console.log('Книг больше нет')
+    }
+  }
+}
+
+//* Методы cursor
+// advance(count) - продвинуть курсор на count позиций, пропустив значения
+// continue([key]) - продвинуть курсор к следующему значению или до позиции сразу после key (если указан)
+
+// Независимо от наличия значений вызывается onsuccess
+// Если значений нет, то request.result === undefined
+
+// Точно также cursor может работать и с индексами
+{
+  const request = priceIndex.openCursor(IDBKeyRange.upperBound(5))
+
+  request.onsuccess = () => {
+    const cursor = request.result
+    if (cursor) {
+      const primaryKey = cursor.primaryKey // следующий ключ в хранилище объектов (поле id)
+      const key = cursor.key // следующий ключ индекса (price)
+      const value = cursor.value // следующее значение в хранилище объектов
+      cursor.continue()
+    } else {
+      console.log('Книг больше нет')
+    }
+  }
+}
+
+
+//* Обёртка для промисов
+// Доавлять к каждому запросу обработчик успеха и ошибки немного громоздко
+// Можно использовать делегирование событий
+// Но использовать async/await ещё удобнее
+// https://github.com/jakearchibald/idb - обёртка над промисами, которая создаёт глобальный idb объект
+//    с промисифицированными IndexedDB методами
+
+// Тогда вместо onsucces и onerror можно писать так:
+{(async () => {
+  const db = await idb.openDb('store', 1, db => {
+    if (db.oldVersion == 0) {
+      db.createObjectStore('books', {keyPath: 'id'})
+    }
+  })
+
+  const transaction = db.transaction('books', 'readwrite')
+  const books = transaction.objectStore('books')
+
+  try {
+    await books.add()
+    await books.add()
+
+    await transaction.complete
+
+    console.log('сохранено')
+  } catch(err) {
+    console.log('ошибка', err.message)
+  }
+})()}
+// теперь у нас красивый плоский асинхронный код
+
+
+//* Обработка ошибок
+// Если не перехватим ошибку, то она вывалится наружу, вверх по стеку вызовов,
+//    до близжайшего внешнего try..catch
+// необработанная ошибка становится событием unhandled promise rejection в объекте window
+
+// Их можно обработать так:
+{
+  window.addEventListener('unhandledrejection', event => {
+    const request = event.target // объект запроса IndexedDB
+    const error = event.reason // необработанный объект ошибки, как request.error
+    // сообщить об ошибке
+  })
+}
+
+
+//* Подводный камень: "Inactive transaction"
+// Транзакции автоматически завершаются,
+//    как только браузер завершает работу с текущим кодом и макрозадачу
+// Следующие операции выдадут ошибку
+// Решение такое же: предварительно вычислить, потом вызвать
+
+
+//* Получение встроенных методов
+// Когда нам нужно получить доступ к оригинальному request, то его можно получить через promise.request
